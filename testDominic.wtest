@@ -1,0 +1,127 @@
+import dominic.*
+describe "Preparando las carreras" {
+  test "Dominic compra autos, que pasan a ser suyos" {
+    testObject.comprarTodosLosAutos()
+    assert.equals(dominic.autos().size(), 4)
+  }
+
+  test "Dominic encuentra cuáles de sus autos no están en condiciones para correr y los manda a su taller." {
+    testObject.comprarTodosLosAutos()
+    dominic.mandarAutosAlTaller()
+    assert.equals(taller.autosAReparar().size(), 1)
+  }
+
+  test "Cuando se trabaja en el taller, se reparan todos los autos que haya allí" {
+    testObject.comprarTodosLosAutos()
+    dominic.mandarAutosAlTaller()
+    assert.equals(taller.autosAReparar().size(), 1)
+    taller.repararAutos()
+    assert.equals(taller.autosAReparar().size(), 1) //La flecha rubi no se repara del todo
+    taller.repararAutos()
+    assert.equals(taller.autosAReparar().size(), 0)
+  }
+
+  test "Dominic hace pruebas de velocidad en todos sus autos, lo que eventualmente podría afectar la disponibilidad de los autos para la próxima carrera." {
+    testObject.comprarTodosLosAutos()
+    assert.that(elIntocable.estaListoParaCorrer())
+    assert.that(laFerrari.estaListoParaCorrer())
+    dominic.hacerPruebaDeVelocidad()
+    assert.notThat(elIntocable.estaListoParaCorrer())
+    assert.notThat(laFerrari.estaListoParaCorrer())
+  }
+
+  test "Dominic puede vender todos sus autos" {
+    testObject.comprarTodosLosAutos()
+    assert.equals(dominic.autos().size(), 4)
+    dominic.venderTodosLosAutos()
+    assert.equals(dominic.autos().size(), 0)
+  }
+
+  test "El promedio de velocidades máximas de todos sus autos, estén en condiciones o no." {
+    testObject.comprarTodosLosAutos()
+    assert.equals(dominic.promedioDeVelocidadMaxima(), 112.5)
+  }
+
+  test "El auto más rápido que tiene, entre los que están en condiciones de correr." {
+    testObject.comprarTodosLosAutos()
+    assert.equals(dominic.autoMasRapidoEnFuncionamiento(), laFerrari) //No es la flecha rubi porque no está en condiciones
+  }
+
+  test "No hay ningun auto en condiciones con más del doble de volcidad que el promedio." {
+    testObject.comprarTodosLosAutos()
+    assert.notThat(dominic.hayUnAutoDelDobleDeVelocidad())
+  }
+}
+
+describe "Test de autos" {
+  test "La ferrari Está en condiciones para correr. Se repara y queda al 100%. Por lo tanto, la ferrari tiene el bonus de velocidad. Se le hacen dos pruebas de velocidad. Pierde la habilidad de correr y el bonus de velocidad." {
+    assert.that(laFerrari.estaListoParaCorrer())
+    laFerrari.reparar()
+    assert.equals(laFerrari.velocidadMaxima(), 125)
+    2.times({x => laFerrari.pruebaDeVelocidad()})
+    assert.notThat(laFerrari.estaListoParaCorrer())
+    assert.equals(laFerrari.velocidadMaxima(), 110)
+  }
+
+  test "La flecha rubi no está en condiciones para correr por su color azul" {
+    assert.notThat(laFlechaRubi.estaListoParaCorrer())
+  }
+
+  test "La flecha rubi no se repara del todo con un solo paso por el taller" {
+    laFlechaRubi.reparar()
+    assert.notThat(laFlechaRubi.estaListoParaCorrer())
+  }
+
+  test "La flecha rubi se repara del todo con dos pasos por el taller" {
+    laFlechaRubi.reparar()
+    assert.notThat(laFlechaRubi.estaListoParaCorrer())
+    laFlechaRubi.reparar()
+    assert.that(laFlechaRubi.estaListoParaCorrer())
+  }
+
+  test "La velocidad maxima de la flecha rubi cambia según el tipo de combustible" {
+    //Con gasolina
+    assert.equals(laFlechaRubi.velocidadMaxima(), 210)
+
+    //Con nafta
+    laFlechaRubi.cambiarCombustible(nafta)
+    assert.equals(laFlechaRubi.velocidadMaxima(), 220)
+
+    //Con nitrogeno liquido
+    laFlechaRubi.cambiarCombustible(nitrogenoLiquido)
+    assert.equals(laFlechaRubi.velocidadMaxima(), 2200)
+    
+  }
+
+  test "El intocable está en condiciones para correr" {
+    assert.that(elIntocable.estaListoParaCorrer())
+  }
+
+  test "El intocable deja de estar en condiciones para correr después de una prueba de velocidad" {
+    elIntocable.pruebaDeVelocidad()
+    assert.notThat(elIntocable.estaListoParaCorrer())
+  }
+
+  test "El alambique veloz cambia de velocidad según el pais" {
+    assert.equals(alambiqueVeloz.velocidadMaxima(), 70)
+    alambiqueVeloz.pruebaDeVelocidad()
+    assert.equals(alambiqueVeloz.velocidadMaxima(), 49)
+    alambiqueVeloz.pruebaDeVelocidad()
+    assert.equals(alambiqueVeloz.velocidadMaxima(), 158)
+  }
+
+  test "El alambique veloz deja de estar en condiciones para correr después de diez pruebas de velocidad" {
+    10.times({x => alambiqueVeloz.pruebaDeVelocidad()})
+    assert.notThat(alambiqueVeloz.estaListoParaCorrer()) 
+  }
+
+}
+
+object testObject {
+  method comprarTodosLosAutos() {
+    dominic.comprarAuto_(laFerrari)
+    dominic.comprarAuto_(laFlechaRubi)
+    dominic.comprarAuto_(elIntocable)
+    dominic.comprarAuto_(alambiqueVeloz)
+  }
+}
